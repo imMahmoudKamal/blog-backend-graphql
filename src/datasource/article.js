@@ -29,6 +29,9 @@ export class articleDataSource extends DataSource {
       const article = await Article.findOne({ $or: [{ _id }, { permalink: input }] });
       if (!article) throw new Error('Article is not exist!');
 
+      // increment viewCount
+      await Article.findByIdAndUpdate(article._id, { $inc: { viewCount: 1 } });
+
       return article;
     } catch (error) {
       return error;
@@ -60,6 +63,20 @@ export class articleDataSource extends DataSource {
       if (!allArticles) throw new Error('Internal Server Error Please try again later!');
 
       return allArticles;
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async getMostViewed(limit) {
+    try {
+      const mostViewed = await Article.find()
+        .sort({ viewCount: -1 })
+        .limit(limit || 5);
+
+      if (!mostViewed) throw new Error('Internal Server Error Please try again later!');
+
+      return mostViewed;
     } catch (error) {
       return error;
     }

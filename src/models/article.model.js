@@ -13,9 +13,19 @@ const articleSchema = new mongoose.Schema(
       required: [true, 'permalink field is required'],
       unique: true,
     },
+    viewCount: {
+      type: Number,
+      default: 0,
+    },
     imageURL: {
       type: String,
       required: [true, 'imageURL field is required'],
+    },
+    imageDescription: {
+      type: String,
+      default: function () {
+        return this.title;
+      },
     },
     content: {
       type: String,

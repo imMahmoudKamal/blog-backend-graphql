@@ -50,6 +50,9 @@ export const ArticleTypeDefs = gql`
 
     "Get an array of articles (You can pass a page number and limit of items you want)"
     articlesPagination(page: Int, limit: Int): ArticlePagination!
+
+    "Get most viewed articles"
+    mostViewedArticles(limit: Int): [Article]!
   }
 
   extend type Mutation {
