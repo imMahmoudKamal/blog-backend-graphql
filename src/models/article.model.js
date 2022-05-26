@@ -12,6 +12,8 @@ const articleSchema = new mongoose.Schema(
       type: String,
       required: [true, 'permalink field is required'],
       unique: true,
+      lowercase: true,
+      trim: true,
     },
     viewCount: {
       type: Number,
@@ -46,5 +48,14 @@ const articleSchema = new mongoose.Schema(
 );
 
 articleSchema.plugin(paginate);
+
+articleSchema.pre('save', function (next) {
+  this.permalink = this.permalink
+    .replace(/[^\w\s]/gi, '')
+    .replace(/(\s+|-+)+/g, '-')
+    .replace(/-$/, '');
+
+  next();
+});
 
 export default mongoose.model('Article', articleSchema);

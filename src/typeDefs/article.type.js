@@ -1,8 +1,8 @@
 import { gql } from 'apollo-server';
 
-export const ArticleTypeDefs = gql`
+export const articleTypeDefs = gql`
   type Article {
-    id: ID
+    id: ID!
     title: String!
     permalink: String!
     imageURL: String!
@@ -62,10 +62,10 @@ export const ArticleTypeDefs = gql`
     "Create a new article"
     createArticle(input: CreateArticleInput!): Article
 
-    "Update an existing article"
+    "Update an existing article with article's ID or article's permalink"
     updateArticle(id: ID!, input: UpdateArticleInput!): Article
 
-    "Delete an existing article"
+    "Delete an existing article with article's ID or article's permalink"
     deleteArticle(id: ID!): String
   }
 `;
