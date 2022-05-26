@@ -82,6 +82,20 @@ export class articleDataSource extends DataSource {
     }
   }
 
+  async getRecent(limit) {
+    try {
+      const recentArticles = await Article.find()
+        .sort({ createdAt: -1 })
+        .limit(limit || 5);
+
+      if (!recentArticles) throw new Error('Internal Server Error Please try again later!');
+
+      return recentArticles;
+    } catch (error) {
+      return error;
+    }
+  }
+
   async update(id, input) {
     const _id = mongoose.isValidObjectId(id) ? id : null;
 
