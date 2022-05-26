@@ -35,9 +35,28 @@ export class articleDataSource extends DataSource {
     }
   }
 
-  async getAllArticles() {
+  async getAllArticles(page, limit) {
+    const options = {
+      page: page || 1,
+      limit: limit || 10,
+      sort: {
+        createdAt: -1,
+      },
+      customLabels: {
+        docs: 'articles',
+        totalDocs: 'totalArticles',
+        limit: 'limit',
+        totalPages: 'totalPages',
+        page: 'currentPage',
+        pagingCounter: 'pagingCounter',
+        nextPage: 'next',
+        prevPage: 'prev',
+        meta: 'paginator',
+      },
+    };
+
     try {
-      const allArticles = await Article.find({});
+      const allArticles = await Article.paginate({}, options);
       if (!allArticles) throw new Error('Internal Server Error Please try again later!');
 
       return allArticles;

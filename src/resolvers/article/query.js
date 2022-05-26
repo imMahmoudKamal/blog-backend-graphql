@@ -1,5 +1,5 @@
 export const articleQuery = {
   article: (_, { id }, { dataSources }) => dataSources.article.getArticle(id),
 
-  articles: (_, __, { dataSources }) => dataSources.article.getAllArticles(),
+  articlesPagination: (_, { page, limit }, { dataSources }) => dataSources.article.getAllArticles(page, limit),
 };
