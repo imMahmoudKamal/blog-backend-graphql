@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import paginate from 'mongoose-paginate-v2';
 
 const articleSchema = new mongoose.Schema(
   {
@@ -11,10 +12,22 @@ const articleSchema = new mongoose.Schema(
       type: String,
       required: [true, 'permalink field is required'],
       unique: true,
+      lowercase: true,
+      trim: true,
+    },
+    viewCount: {
+      type: Number,
+      default: 0,
     },
     imageURL: {
       type: String,
       required: [true, 'imageURL field is required'],
+    },
+    imageDescription: {
+      type: String,
+      default: function () {
+        return this.title;
+      },
     },
     content: {
       type: String,
@@ -33,5 +46,16 @@ const articleSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+articleSchema.plugin(paginate);
+
+articleSchema.pre('save', function (next) {
+  this.permalink = this.permalink
+    .replace(/[^\w\s-]/gi, '')
+    .replace(/(\s+|-+)+/g, '-')
+    .replace(/-$/, '');
+
+  next();
+});
 
 export default mongoose.model('Article', articleSchema);

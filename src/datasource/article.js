@@ -1,6 +1,19 @@
 import { DataSource } from 'apollo-datasource';
 import Article from '../models/article.model.js';
+import Category from '../models/category.model.js';
 import mongoose from 'mongoose';
+
+const customLabels = {
+  docs: 'articles',
+  totalDocs: 'totalArticles',
+  limit: 'limit',
+  totalPages: 'totalPages',
+  page: 'currentPage',
+  pagingCounter: 'pagingCounter',
+  nextPage: 'next',
+  prevPage: 'prev',
+  meta: 'paginator',
+};
 
 export class articleDataSource extends DataSource {
   initialize(config) {
@@ -9,6 +22,14 @@ export class articleDataSource extends DataSource {
 
   async create(input) {
     try {
+      // check if article exists
+      const isArticleExists = await Article.findOne({ permalink: input.permalink });
+      if (isArticleExists) throw new Error('Article already exists!');
+
+      // check if category exists
+      const isCategoryExists = await Category.findById(input.categoryId);
+      if (!isCategoryExists) throw new Error("You can't create an Article with a category that doesn't exists!");
+
       // create new article
       const newArticle = await new Article({ ...input });
 
@@ -29,18 +50,78 @@ export class articleDataSource extends DataSource {
       const article = await Article.findOne({ $or: [{ _id }, { permalink: input }] });
       if (!article) throw new Error('Article is not exist!');
 
+      // increment viewCount
+      await Article.findByIdAndUpdate(article._id, { $inc: { viewCount: 1 } });
+
       return article;
     } catch (error) {
       return error;
     }
   }
 
-  async getAllArticles() {
+  async getAllArticles(page, limit) {
+    const options = {
+      page: page || 1,
+      limit: limit || 10,
+      sort: {
+        createdAt: -1,
+      },
+      customLabels,
+    };
+
     try {
-      const allArticles = await Article.find({});
+      const allArticles = await Article.paginate({}, options);
       if (!allArticles) throw new Error('Internal Server Error Please try again later!');
 
       return allArticles;
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async getAllArticlesByCategory(categoryId, page, limit) {
+    const options = {
+      page: page || 1,
+      limit: limit || 10,
+      sort: {
+        createdAt: -1,
+      },
+      customLabels,
+    };
+
+    try {
+      const allArticles = await Article.paginate({ categoryId }, options);
+      if (!allArticles) throw new Error('Internal Server Error Please try again later!');
+
+      return allArticles;
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async getMostViewed(limit) {
+    try {
+      const mostViewed = await Article.find()
+        .sort({ viewCount: -1 })
+        .limit(limit || 5);
+
+      if (!mostViewed) throw new Error('Internal Server Error Please try again later!');
+
+      return mostViewed;
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async getRecent(limit) {
+    try {
+      const recentArticles = await Article.find()
+        .sort({ createdAt: -1 })
+        .limit(limit || 5);
+
+      if (!recentArticles) throw new Error('Internal Server Error Please try again later!');
+
+      return recentArticles;
     } catch (error) {
       return error;
     }
