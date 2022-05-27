@@ -1,15 +1,27 @@
 import { DataSource } from 'apollo-datasource';
 import mongoose from 'mongoose';
-import Article from '../models/article.model.js';
+import DataLoader from 'dataloader';
 import Category from '../models/category.model.js';
 
 export class categoryDataSource extends DataSource {
   initialize(config) {
     this.context = config.context;
+
+    this.loaders = {
+      category: new DataLoader(async (categoryIDs) => {
+        const categories = await Category.find({ _id: { $in: categoryIDs } });
+
+        return Promise.all(categories);
+      }),
+    };
   }
 
   async create(input) {
     try {
+      // check if category exists
+      const isExists = await Category.findOne({ permalink: input.permalink });
+      if (isExists) throw new Error('Category already exists!');
+
       // create new category
       const newCategory = await new Category({ ...input });
 
@@ -28,9 +40,19 @@ export class categoryDataSource extends DataSource {
 
     try {
       const category = await Category.findOne({ $or: [{ _id }, { permalink: input }] });
-      if (!category) throw new Error('Category is not exist!');
+      if (!category) throw new Error('Category is not exists!');
 
       return category;
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async getCategoryByID(id) {
+    try {
+      const categories = await this.loaders.category.load(id);
+
+      return categories;
     } catch (error) {
       return error;
     }

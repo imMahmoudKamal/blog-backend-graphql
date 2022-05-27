@@ -26,7 +26,7 @@ const categorySchema = new mongoose.Schema(
 
 categorySchema.pre('save', function (next) {
   this.permalink = this.permalink
-    .replace(/[^\w\s]/gi, '')
+    .replace(/[^\w\s-]/gi, '')
     .replace(/(\s+|-+)+/g, '-')
     .replace(/-$/, '');
 

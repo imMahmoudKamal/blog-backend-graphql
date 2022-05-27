@@ -6,8 +6,10 @@ export const articleTypeDefs = gql`
     title: String!
     permalink: String!
     imageURL: String!
+    imageDescription: String!
     content: String
-    categoryId: ID!
+    createdAt: String!
+    category: Category!
     userId: ID!
   }
 
@@ -23,7 +25,12 @@ export const articleTypeDefs = gql`
     next: Int
   }
 
-  type ArticlePagination {
+  type ArticlesPagination {
+    articles: [Article]!
+    paginator: Paginator!
+  }
+
+  type ArticlesByCategoryPagination {
     articles: [Article]!
     paginator: Paginator!
   }
@@ -32,6 +39,7 @@ export const articleTypeDefs = gql`
     title: String!
     permalink: String!
     imageURL: String!
+    imageDescription: String
     content: String
     categoryId: ID!
     userId: ID!
@@ -41,7 +49,9 @@ export const articleTypeDefs = gql`
     title: String!
     permalink: String!
     imageURL: String!
+    imageDescription: String
     content: String
+    categoryId: ID
   }
 
   extend type Query {
@@ -49,13 +59,16 @@ export const articleTypeDefs = gql`
     article(id: ID!): Article
 
     "Get an array of articles (You can pass a page number and limit of items you want)"
-    articlesPagination(page: Int, limit: Int): ArticlePagination!
+    articlesPagination(page: Int, limit: Int): ArticlesPagination!
 
     "Get most viewed articles (Default limit is 5)"
     mostViewedArticles(limit: Int): [Article]!
 
     "Get recent articles (Default limit is 5)"
     recentArticles(limit: Int): [Article]!
+
+    "Get an array of articles by category"
+    articlesByCategoryPagination(categoryID: ID!, page: Int, limit: Int): ArticlesByCategoryPagination!
   }
 
   extend type Mutation {
