@@ -1,7 +1,7 @@
 export const userQuery = {
-	user(_, arg, context) {
-		const id = context.user?.id;
-		return context.dataSources.user.getById(id);
+	user(_, arg, { error, user, dataSources }) {
+		if (error) throw error;
+		return dataSources.user.getById(user.id);
 	},
 	usersByRole(_, { role }, { dataSources: { user } }) {
 		return user.getByRole(role);
