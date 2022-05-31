@@ -1,6 +1,7 @@
-import { gql } from 'apollo-server';
-import { articleTypeDefs } from './article.type.js';
-import { categoryTypeDefs } from './category.type.js';
+import { gql } from "apollo-server";
+import { articleTypeDefs } from "./article.type.js";
+import { categoryTypeDefs } from "./category.type.js";
+import { userTypeDefs } from "./user.type.js";
 
 // for global types
 const baseTypeDefs = gql`
@@ -9,4 +10,9 @@ const baseTypeDefs = gql`
   type Mutation
 `;
 
-export const typeDefs = [baseTypeDefs, articleTypeDefs, categoryTypeDefs];
+export const typeDefs = [
+  baseTypeDefs,
+  articleTypeDefs,
+  categoryTypeDefs,
+  userTypeDefs,
+];
