@@ -15,6 +15,6 @@ export const authorization = async (auth) => {
 		// add the user to the context
 		return { user };
 	} catch (error) {
-		throw new ApolloError(`${error.message}`, 'JWT_ERROR');
+		return { error };
 	}
 };

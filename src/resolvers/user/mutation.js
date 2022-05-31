@@ -7,9 +7,10 @@ export const userMutation = {
 		return user.login(input);
 	},
 
-	updateUser(_, { input }, context) {
-		const id = context.user?.id;
-		return context.dataSources.user.update(id, input);
+	// update user by his token // if there iw any error in auth middleware throw i5
+	updateUser(_, { input }, { error, user, dataSources }) {
+		if (error) throw error;
+		return dataSources.user.update(user.id, input);
 	},
 
 	updateUserRole(_, { id, role }, { dataSources: { user } }) {
