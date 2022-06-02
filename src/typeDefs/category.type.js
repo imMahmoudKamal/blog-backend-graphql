@@ -21,20 +21,20 @@ export const categoryTypeDefs = gql`
 
 	extend type Query {
 		"Get a single category with category's ID or category's permalink"
-		category(id: ID): Category
+		category(id: ID): Category @isAuth
 
 		"Get an array of all categories"
-		categories: [Category]!
+		categories: [Category]! @isAuth
 	}
 
 	extend type Mutation {
 		"Create a new category"
-		createCategory(input: CategoryInput!): Category
+		createCategory(input: CategoryInput!): Category @isAdmin
 
 		"Update an existing category with category's ID or category's permalink"
-		updateCategory(id: ID!, input: UpdateCategoryInput!): Category
+		updateCategory(id: ID!, input: UpdateCategoryInput!): Category @isAdmin
 
 		"Delete an existing category with category's ID or category's permalink"
-		deleteCategory(id: ID!): String
+		deleteCategory(id: ID!): String @isAdmin
 	}
 `;

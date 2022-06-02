@@ -2,6 +2,7 @@ import { DataSource } from 'apollo-datasource';
 import { ApolloError } from 'apollo-server-errors';
 import { User } from '../models/user.model.js';
 import Dataloader from 'Dataloader';
+import { isPasswordSecure, isEmailValid } from '../middleware/checkRequired.js';
 
 export class userDataSource extends DataSource {
 	initialize(config) {
@@ -19,39 +20,63 @@ export class userDataSource extends DataSource {
 			const isEmailExists = await User.findOne({ email: input.email });
 			if (isEmailExists)
 				throw new ApolloError(
-					`the user is aleady registered with this email: ${input.email}`,
+					`The user is aleady registered with this email: ${input.email}`,
 					'USER_ALREADY_EXISTS',
+				);
+
+			// check if the password secure or not
+			const isSecure = isPasswordSecure(input.password);
+			if (!isSecure)
+				throw new ApolloError(
+					`The password must contain at least one number, one special(!@#$%^&*), lowercase, uppercase character and eight characters or longer`,
+					'INSECURED_PASSWORD',
+				);
+
+			// check if the email valid or not
+			const isValid = isEmailValid(input.email);
+			if (!isValid)
+				throw new ApolloError(
+					`The email is invalid email: ${input.email}`,
+					'INVALID_EMAIL',
 				);
 
 			// create new user
 			const createdUser = await new User(input);
 
+			// save new created user
+			const user = await createdUser.save();
+
 			// create token for a created user
 			const token = await createdUser.generateToken();
 
-			// add token to created user
-			createdUser.token = token;
+			// attach tokent to user object
+			user.token = token;
 
-			// return the saved user
-			return await createdUser.save();
+			return user;
 		} catch (error) {
 			return error;
 		}
 	}
 	async login(input) {
 		try {
+			// check if there is a user with this inputted email
 			const user = await User.findOne({ email: input.email });
 			if (!user) throw new ApolloError('Wrong email or password', 'UNAUTHORIZED');
 
+			// check if the inputted password match the user password in the DB
+			const isMatch = await user.checkPassword(input.password);
+			if (!isMatch) throw new ApolloError('Wrong email or password', 'UNAUTHORIZED');
+
+			// check if the user is blocked or not
 			const isBlocked = user.blocked;
 			if (isBlocked)
 				throw new ApolloError('sorry you are blocked from login', 'UNAUTHORIZED');
 
-			const isMatch = await user.checkPassword(input.password);
-			if (!isMatch) throw new ApolloError('Wrong email or password', 'UNAUTHORIZED');
-
+			// generate a new token for user
 			const token = await user.generateToken();
-			user.token;
+
+			// attach the token to user object
+			user.token = token;
 
 			return user;
 		} catch (error) {

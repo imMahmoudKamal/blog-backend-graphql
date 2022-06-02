@@ -19,7 +19,7 @@ const schema = new mongoose.Schema({
 		type: String,
 		required: true,
 		trim: true,
-		unique: true,
+		// unique: true,
 	},
 
 	password: {
@@ -31,11 +31,6 @@ const schema = new mongoose.Schema({
 	ProfilePicture: {
 		type: String,
 		default: '/images/ProfilePicture.jpg',
-	},
-
-	token: {
-		type: String,
-		required: true,
 	},
 
 	role: {
@@ -52,6 +47,15 @@ const schema = new mongoose.Schema({
 		default: false,
 	},
 });
+
+// specify the transform schema option
+if (!schema.options.toObject) schema.options.toObject = {};
+schema.options.toObject.transform = function (doc, ret, options) {
+	// remove the password and __v of every document before returning the result
+	delete ret.password;
+	delete ret.__v;
+	return ret;
+};
 
 ///////////////////////////////////////////////////// Hashing password befor saving //////////////
 
@@ -72,9 +76,9 @@ schema.methods.checkPassword = function (plainPassword) {
 
 //////////////////////////////////////////////////////////////////////// JsonWebToken /////////////
 schema.methods.generateToken = function () {
-	const currentDocument = this;
+	const currentUser = this;
 	const jwtSecret = process.env.JWT_SECRET;
-	return jwt.sign({ id: currentDocument.id }, jwtSecret, { expiresIn: '10h' });
+	return jwt.sign({ id: currentUser.id }, jwtSecret, { expiresIn: '1h' });
 };
 
 ////////////////////////////////////////////////////////////////////////////// verification of token /////////
