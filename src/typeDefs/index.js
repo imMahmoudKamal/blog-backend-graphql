@@ -1,18 +1,16 @@
-import { gql } from "apollo-server";
-import { articleTypeDefs } from "./article.type.js";
-import { categoryTypeDefs } from "./category.type.js";
-import { userTypeDefs } from "./user.type.js";
+import { gql } from 'apollo-server';
+import { articleTypeDefs } from './article.type.js';
+import { categoryTypeDefs } from './category.type.js';
+import { userTypeDefs } from './user.type.js';
 
 // for global types
 const baseTypeDefs = gql`
-  type Query
+	directive @isAuth on FIELD_DEFINITION
+	directive @isAdmin on FIELD_DEFINITION
+	directive @isEditor on FIELD_DEFINITION
+	type Query
 
-  type Mutation
+	type Mutation
 `;
 
-export const typeDefs = [
-  baseTypeDefs,
-  articleTypeDefs,
-  categoryTypeDefs,
-  userTypeDefs,
-];
+export const typeDefs = [baseTypeDefs, articleTypeDefs, categoryTypeDefs, userTypeDefs];

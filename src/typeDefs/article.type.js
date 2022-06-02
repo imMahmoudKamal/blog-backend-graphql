@@ -56,33 +56,33 @@ export const articleTypeDefs = gql`
 
 	extend type Query {
 		"Get a single article with article's ID or article's permalink"
-		article(id: ID!): Article
+		article(id: ID!): Article @isAuth
 
 		"Get an array of articles (You can pass a page number and limit of items you want)"
-		articlesPagination(page: Int, limit: Int): ArticlesPagination!
+		articlesPagination(page: Int, limit: Int): ArticlesPagination! @isAuth
 
 		"Get most viewed articles (Default limit is 5)"
-		mostViewedArticles(limit: Int): [Article]!
+		mostViewedArticles(limit: Int): [Article]! @isAuth
 
 		"Get recent articles (Default limit is 5)"
-		recentArticles(limit: Int): [Article]!
+		recentArticles(limit: Int): [Article]! @isAuth
 
 		"Get an array of articles by category"
 		articlesByCategoryPagination(
 			categoryID: ID!
 			page: Int
 			limit: Int
-		): ArticlesByCategoryPagination!
+		): ArticlesByCategoryPagination! @isAuth
 	}
 
 	extend type Mutation {
 		"Create a new article"
-		createArticle(input: CreateArticleInput!): Article
+		createArticle(input: CreateArticleInput!): Article @isEditor
 
 		"Update an existing article with article's ID or article's permalink"
-		updateArticle(id: ID!, input: UpdateArticleInput!): Article
+		updateArticle(id: ID!, input: UpdateArticleInput!): Article @isEditor
 
 		"Delete an existing article with article's ID or article's permalink"
-		deleteArticle(id: ID!): String
+		deleteArticle(id: ID!): String @isAdmin
 	}
 `;

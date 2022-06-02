@@ -7,7 +7,6 @@ export const userMutation = {
 		return user.login(input);
 	},
 
-	// update user by his token // if there iw any error in auth middleware throw i5
 	updateUser(_, { input }, { error, user, dataSources }) {
 		if (error) throw error;
 		return dataSources.user.update(user.id, input);
