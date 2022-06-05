@@ -2,9 +2,8 @@ import { gql } from 'apollo-server';
 
 export const userTypeDefs = gql`
 	enum ROLE {
-		viewer
-		editor
 		admin
+		author
 	}
 
 	type User {
@@ -38,7 +37,7 @@ export const userTypeDefs = gql`
 
 	extend type Query {
 		# get user's data by token
-		user: User @isAuth
+		user: User
 
 		# admin can get users by them roles
 		usersByRole(role: ROLE!): [User] @isAdmin

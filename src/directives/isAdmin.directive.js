@@ -18,7 +18,7 @@ export function isAdminDirectiveTransformer(schema, directiveName) {
 				fieldConfig.resolve = async function (source, args, context, info) {
 					if (context.user?.role === 'admin') {
 						return await resolve(source, args, context, info);
-					} else throw new ApolloError('You are not Admin', 'UNAUTHORIZED');
+					} else throw new ApolloError('You are not Admin', 'UNAUTHENTICATED');
 				};
 				return fieldConfig;
 			}

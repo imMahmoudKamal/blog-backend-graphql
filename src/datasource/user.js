@@ -21,7 +21,7 @@ export class userDataSource extends DataSource {
 			if (isEmailExists)
 				throw new ApolloError(
 					`The user is aleady registered with this email: ${input.email}`,
-					'USER_ALREADY_EXISTS',
+					'GRAPHQL_VALIDATION_FAILED',
 				);
 
 			// check if the password secure or not
@@ -29,7 +29,7 @@ export class userDataSource extends DataSource {
 			if (!isSecure)
 				throw new ApolloError(
 					`The password must contain at least one number, one special(!@#$%^&*), lowercase, uppercase character and eight characters or longer`,
-					'INSECURED_PASSWORD',
+					'GRAPHQL_VALIDATION_FAILED',
 				);
 
 			// check if the email valid or not
@@ -37,7 +37,7 @@ export class userDataSource extends DataSource {
 			if (!isValid)
 				throw new ApolloError(
 					`The email is invalid email: ${input.email}`,
-					'INVALID_EMAIL',
+					'GRAPHQL_VALIDATION_FAILED',
 				);
 
 			// create new user
@@ -61,16 +61,16 @@ export class userDataSource extends DataSource {
 		try {
 			// check if there is a user with this inputted email
 			const user = await User.findOne({ email: input.email });
-			if (!user) throw new ApolloError('Wrong email or password', 'UNAUTHORIZED');
+			if (!user) throw new ApolloError('Wrong email or password', 'UNAUTHENTICATED');
 
 			// check if the inputted password match the user password in the DB
 			const isMatch = await user.checkPassword(input.password);
-			if (!isMatch) throw new ApolloError('Wrong email or password', 'UNAUTHORIZED');
+			if (!isMatch) throw new ApolloError('Wrong email or password', 'UNAUTHENTICATED');
 
 			// check if the user is blocked or not
 			const isBlocked = user.blocked;
 			if (isBlocked)
-				throw new ApolloError('sorry you are blocked from login', 'UNAUTHORIZED');
+				throw new ApolloError('sorry you are blocked from login', 'UNAUTHENTICATED');
 
 			// generate a new token for user
 			const token = await user.generateToken();
