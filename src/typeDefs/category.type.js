@@ -21,10 +21,10 @@ export const categoryTypeDefs = gql`
 
 	extend type Query {
 		"Get a single category with category's ID or category's permalink"
-		category(id: ID): Category @isAuth
+		category(id: ID): Category
 
 		"Get an array of all categories"
-		categories: [Category]! @isAuth
+		categories: [Category]!
 	}
 
 	extend type Mutation {

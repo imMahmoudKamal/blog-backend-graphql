@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 const schema = new mongoose.Schema({
-	fristName: {
+	firstName: {
 		type: String,
 		required: true,
 		trim: true,
@@ -19,7 +19,7 @@ const schema = new mongoose.Schema({
 		type: String,
 		required: true,
 		trim: true,
-		// unique: true,
+		unique: true,
 	},
 
 	password: {
@@ -35,9 +35,9 @@ const schema = new mongoose.Schema({
 
 	role: {
 		type: String,
-		default: 'viewer',
+		default: 'author',
 		enum: {
-			values: ['admin', 'editor', 'viewer'],
+			values: ['admin', 'author'],
 			message: '{VALUE} is not supported role',
 		},
 	},
@@ -78,7 +78,7 @@ schema.methods.checkPassword = function (plainPassword) {
 schema.methods.generateToken = function () {
 	const currentUser = this;
 	const jwtSecret = process.env.JWT_SECRET;
-	return jwt.sign({ id: currentUser.id }, jwtSecret, { expiresIn: '1h' });
+	return jwt.sign({ id: currentUser.id }, jwtSecret, { expiresIn: '24h' });
 };
 
 ////////////////////////////////////////////////////////////////////////////// verification of token /////////

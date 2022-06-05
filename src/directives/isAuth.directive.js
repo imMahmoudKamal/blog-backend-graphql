@@ -1,5 +1,6 @@
 import { mapSchema, getDirective, MapperKind } from '@graphql-tools/utils';
 import { ApolloError } from 'apollo-server-errors';
+
 import { defaultFieldResolver } from 'graphql';
 
 export function isAuthDirectiveTransformer(schema, directiveName) {
@@ -18,7 +19,7 @@ export function isAuthDirectiveTransformer(schema, directiveName) {
 				fieldConfig.resolve = async function (source, args, context, info) {
 					if (context.user) {
 						return await resolve(source, args, context, info);
-					} else throw new ApolloError('You are not authorized', 'UNAUTHORIZED');
+					} else throw new ApolloError('You are not authorized', 'UNAUTHENTICATED');
 				};
 				return fieldConfig;
 			}

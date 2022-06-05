@@ -7,7 +7,6 @@ import { userTypeDefs } from './user.type.js';
 const baseTypeDefs = gql`
 	directive @isAuth on FIELD_DEFINITION
 	directive @isAdmin on FIELD_DEFINITION
-	directive @isEditor on FIELD_DEFINITION
 	type Query
 
 	type Mutation
