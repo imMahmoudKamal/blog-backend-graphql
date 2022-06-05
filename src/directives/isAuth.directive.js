@@ -17,9 +17,10 @@ export function isAuthDirectiveTransformer(schema, directiveName) {
 				// Replace the original resolver with a function that *first* calls
 				// the original resolver, then converts its result to upper case
 				fieldConfig.resolve = async function (source, args, context, info) {
+					if (context.error) throw context.error;
 					if (context.user) {
 						return await resolve(source, args, context, info);
-					} else throw new ApolloError('You are not authorized', 'UNAUTHENTICATED');
+					} else throw new ApolloError('Your request missing token', 'BAD_USER_INPUT');
 				};
 				return fieldConfig;
 			}

@@ -21,4 +21,13 @@ export const app = new ApolloServer({
 		if (auth) return authorization(auth);
 	},
 	dataSources: () => ({ ...dataSource }),
+	formatError: (err) => {
+		// Don't give the specific errors to the client.
+		console.log(err.extensions);
+		if (err.extensions.code === 'INTERNAL_SERVER_ERROR') {
+			return new Error('Internal server error');
+		}
+		// Otherwise return the original error. The error can also
+		return err;
+	},
 });
