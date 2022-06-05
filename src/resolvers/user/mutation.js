@@ -7,9 +7,7 @@ export const userMutation = {
 		return user.login(input);
 	},
 
-	updateUser(_, { input }, { error, user, dataSources }) {
-		// if there is an error during validation of token [from auth middleware]
-		if (error) throw error;
+	updateUser(_, { input }, { user, dataSources }) {
 		return dataSources.user.update(user.id, input);
 	},
 

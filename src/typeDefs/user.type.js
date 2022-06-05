@@ -37,7 +37,7 @@ export const userTypeDefs = gql`
 
 	extend type Query {
 		# get user's data by token
-		user: User
+		user: User @isAuth
 
 		# admin can get users by them roles
 		usersByRole(role: ROLE!): [User] @isAdmin
