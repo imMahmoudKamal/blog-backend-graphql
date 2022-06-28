@@ -81,6 +81,7 @@ export class userDataSource extends DataSource {
   async getById(id) {
     return await this.userLoader.load(id);
   }
+  
   async update(id, input) {
     return await User.findOneAndUpdate({ _id: id }, { $set: { ...input } }, { new: true });
   }

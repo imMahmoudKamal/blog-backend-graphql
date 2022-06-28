@@ -7,13 +7,14 @@ export const userTypeDefs = gql`
   }
 
   type User {
+    id: ID!
+    firstName: String!
+    lastName: String!
+    email: String!
+    profilePicture: String
+    role: ROLE!
+    blocked: Boolean!
     token: String
-    id: ID
-    firstName: String
-    lastName: String
-    email: String
-    role: ROLE
-    blocked: Boolean
   }
 
   input registerInput {
@@ -21,6 +22,7 @@ export const userTypeDefs = gql`
     lastName: String!
     email: String!
     password: String!
+    profilePicture: String
   }
 
   input updateUserInput {
@@ -28,6 +30,7 @@ export const userTypeDefs = gql`
     lastName: String
     email: String
     password: String
+    profilePicture: String
   }
 
   input loginInput {

@@ -28,9 +28,8 @@ const schema = new mongoose.Schema({
     minlength: 6,
   },
 
-  ProfilePicture: {
+  profilePicture: {
     type: String,
-    default: '/images/ProfilePicture.jpg',
   },
 
   role: {
