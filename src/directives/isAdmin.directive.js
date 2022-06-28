@@ -1,27 +1,40 @@
 import { mapSchema, getDirective, MapperKind } from '@graphql-tools/utils';
-import { ApolloError } from 'apollo-server-errors';
+import { AuthenticationError, ForbiddenError } from 'apollo-server-errors';
 import { defaultFieldResolver } from 'graphql';
+import { User } from '../models/user.model.js';
 
 export function isAdminDirectiveTransformer(schema, directiveName) {
-	return mapSchema(schema, {
-		// Executes once for each object field in the schema
-		[MapperKind.OBJECT_FIELD]: (fieldConfig) => {
-			// Check whether this field has the specified directive
-			const upperDirective = getDirective(schema, fieldConfig, directiveName)?.[0];
+  return mapSchema(schema, {
+    // Executes once for each object field in the schema
+    [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
+      // Check whether this field has the specified directive
+      const upperDirective = getDirective(schema, fieldConfig, directiveName)?.[0];
 
-			if (upperDirective) {
-				// Get this field's original resolver
-				const { resolve = defaultFieldResolver } = fieldConfig;
+      if (upperDirective) {
+        // Get this field's original resolver
+        const { resolve = defaultFieldResolver } = fieldConfig;
 
-				// Replace the original resolver with a function that *first* calls
-				// the original resolver, then converts its result to upper case
-				fieldConfig.resolve = async function (source, args, context, info) {
-					if (context.user?.role === 'admin') {
-						return await resolve(source, args, context, info);
-					} else throw new ApolloError('You are not Admin', 'FORBIDDEN');
-				};
-				return fieldConfig;
-			}
-		},
-	});
+        // Replace the original resolver with a function that *first* calls
+        // the original resolver, then converts its result to upper case
+        fieldConfig.resolve = async function (source, args, context, info) {
+          const token = context.req.headers.authorization?.split(' ')[1];
+          if (!token || token === '') return new AuthenticationError('Your request missing token');
+
+          // verify token
+          const user = await User.verifyToken(token);
+          if (user.expired === true || user.payload === null)
+            return new ForbiddenError(`You do not have permissions to access: ${info.fieldName}`);
+
+          // user is admin
+          if (user.payload.role !== 'admin')
+            return new ForbiddenError(`You do not have permissions to access: ${info.fieldName}`);
+
+          // authorized user
+          context.user = user.payload;
+          return await resolve(source, args, context, info);
+        };
+        return fieldConfig;
+      }
+    },
+  });
 }

@@ -15,19 +15,21 @@ schema = isAuthDirectiveTransformer(schema, 'isAuth');
 schema = isAdminDirectiveTransformer(schema, 'isAdmin');
 
 export const app = new ApolloServer({
-	schema,
-	context: ({ req }) => {
-		const auth = req.headers.authorization;
-		if (auth) return authorization(auth);
-	},
-	dataSources: () => ({ ...dataSource }),
-	formatError: (err) => {
-		// Don't give the specific errors to the client.
-		console.log(err.extensions);
-		if (err.extensions.code === 'INTERNAL_SERVER_ERROR') {
-			return new Error('Internal server error');
-		}
-		// Otherwise return the original error. The error can also
-		return err;
-	},
+  schema,
+  context: ({ req }) => ({ req }),
+  dataSources: () => ({ ...dataSource }),
+
+  // context: ({ req }) => {
+  // 	const auth = req.headers.authorization;
+  // 	if (auth) return authorization(auth);
+  // },
+  // formatError: (err) => {
+  // 	// Don't give the specific errors to the client.
+  // 	console.log(err.extensions);
+  // 	if (err.extensions.code === 'INTERNAL_SERVER_ERROR') {
+  // 		return new Error('Internal server error');
+  // 	}
+  // 	// Otherwise return the original error. The error can also
+  // 	return err;
+  // },
 });

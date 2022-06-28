@@ -10,7 +10,7 @@ export const articleTypeDefs = gql`
 		content: String
 		createdAt: String!
 		category: Category!
-		userId: User!
+		user: User!
 	}
 
 	type Paginator {
