@@ -81,7 +81,18 @@ export class userDataSource extends DataSource {
   async getById(id) {
     return await this.userLoader.load(id);
   }
-  
+
+  async getAllUsers(id) {
+    try {
+      const allUsers = await User.find({ _id: { $ne: id } });
+      if (!allUsers) throw new ApolloError('Internal Server Error Please try again later!', 'INTERNAL_SERVER_ERROR');
+
+      return allUsers;
+    } catch (error) {
+      return error;
+    }
+  }
+
   async update(id, input) {
     return await User.findOneAndUpdate({ _id: id }, { $set: { ...input } }, { new: true });
   }
