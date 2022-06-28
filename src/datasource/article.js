@@ -5,185 +5,163 @@ import mongoose from 'mongoose';
 import { ApolloError } from 'apollo-server-errors';
 
 const customLabels = {
-	docs: 'articles',
-	totalDocs: 'totalArticles',
-	limit: 'limit',
-	totalPages: 'totalPages',
-	page: 'currentPage',
-	pagingCounter: 'pagingCounter',
-	nextPage: 'next',
-	prevPage: 'prev',
-	meta: 'paginator',
+  docs: 'articles',
+  totalDocs: 'totalArticles',
+  limit: 'limit',
+  totalPages: 'totalPages',
+  page: 'currentPage',
+  pagingCounter: 'pagingCounter',
+  nextPage: 'next',
+  prevPage: 'prev',
+  meta: 'paginator',
 };
 
 export class articleDataSource extends DataSource {
-	initialize(config) {
-		this.context = config.context;
-	}
+  initialize(config) {
+    this.context = config.context;
+  }
 
-	async create(input) {
-		try {
-			// check if article exists
-			const isArticleExists = await Article.findOne({ permalink: input.permalink });
-			if (isArticleExists) throw new ApolloError('Article already exists!', 'BAD_USER_INPUT');
+  async create(input) {
+    try {
+      // check if article exists
+      const isArticleExists = await Article.findOne({ permalink: input.permalink });
+      if (isArticleExists) return new ApolloError('Article already exists!', 'BAD_USER_INPUT');
 
-			// check if category exists
-			const isCategoryExists = await Category.findById(input.categoryId);
-			if (!isCategoryExists)
-				throw new ApolloError(
-					"You can't create an Article with a category that doesn't exists!",
-					'BAD_USER_INPUT',
-				);
+      // check if category exists
+      if (!mongoose.Types.ObjectId.isValid(input.categoryId))
+        return new ApolloError('Invalid category Id', 'BAD_USER_INPUT');
 
-			// create new article
-			const newArticle = await new Article({ ...input });
+      const isCategoryExists = await Category.findById(input.categoryId);
+      if (!isCategoryExists)
+        return new ApolloError("You can't create an Article with a category that doesn't exists!", 'BAD_USER_INPUT');
 
-			// save article to db
-			const savedArticle = await newArticle.save();
-			if (!savedArticle)
-				throw new ApolloError(
-					'Error while saving Article please try again',
-					'INTERNAL_SERVER_ERROR',
-				);
+      // create new article
+      const newArticle = await new Article({ ...input });
 
-			return savedArticle;
-		} catch (error) {
-			return error;
-		}
-	}
+      // save article to db
+      const savedArticle = await newArticle.save();
+      if (!savedArticle) return new ApolloError('Error while saving Article please try again', 'INTERNAL_SERVER_ERROR');
 
-	async getArticle(input) {
-		const _id = mongoose.isValidObjectId(input) ? input : null;
+      return savedArticle;
+    } catch (error) {
+      return error;
+    }
+  }
 
-		try {
-			const article = await Article.findOne({ $or: [{ _id }, { permalink: input }] });
-			if (!article) throw new ApolloError('Article is not exist!', 'BAD_USER_INPUT');
+  async getArticle(input) {
+    const _id = mongoose.isValidObjectId(input) ? input : null;
 
-			// increment viewCount
-			await Article.findByIdAndUpdate(article._id, { $inc: { viewCount: 1 } });
+    try {
+      const article = await Article.findOne({ $or: [{ _id }, { permalink: input }] });
+      if (!article) throw new ApolloError('Article is not exist!', 'BAD_USER_INPUT');
 
-			return article;
-		} catch (error) {
-			return error;
-		}
-	}
+      // increment viewCount
+      await Article.findByIdAndUpdate(article._id, { $inc: { viewCount: 1 } });
 
-	async getAllArticles(page, limit) {
-		const options = {
-			page: page || 1,
-			limit: limit || 10,
-			sort: {
-				createdAt: -1,
-			},
-			customLabels,
-		};
+      return article;
+    } catch (error) {
+      return error;
+    }
+  }
 
-		try {
-			const allArticles = await Article.paginate({}, options);
-			if (!allArticles)
-				throw new ApolloError(
-					'Internal Server Error Please try again later!',
-					'INTERNAL_SERVER_ERROR',
-				);
+  async getAllArticles(page, limit) {
+    const options = {
+      page: page || 1,
+      limit: limit || 10,
+      sort: {
+        createdAt: -1,
+      },
+      customLabels,
+    };
 
-			return allArticles;
-		} catch (error) {
-			return error;
-		}
-	}
+    try {
+      const allArticles = await Article.paginate({}, options);
+      if (!allArticles) throw new ApolloError('Internal Server Error Please try again later!', 'INTERNAL_SERVER_ERROR');
 
-	async getAllArticlesByCategory(categoryId, page, limit) {
-		const options = {
-			page: page || 1,
-			limit: limit || 10,
-			sort: {
-				createdAt: -1,
-			},
-			customLabels,
-		};
+      return allArticles;
+    } catch (error) {
+      return error;
+    }
+  }
 
-		try {
-			const allArticles = await Article.paginate({ categoryId }, options);
-			if (!allArticles)
-				throw new ApolloError(
-					'Internal Server Error Please try again later!',
-					'INTERNAL_SERVER_ERROR',
-				);
+  async getAllArticlesByCategory(categoryId, page, limit) {
+    const options = {
+      page: page || 1,
+      limit: limit || 10,
+      sort: {
+        createdAt: -1,
+      },
+      customLabels,
+    };
 
-			return allArticles;
-		} catch (error) {
-			return error;
-		}
-	}
+    try {
+      const allArticles = await Article.paginate({ categoryId }, options);
+      if (!allArticles) throw new ApolloError('Internal Server Error Please try again later!', 'INTERNAL_SERVER_ERROR');
 
-	async getMostViewed(limit) {
-		try {
-			const mostViewed = await Article.find()
-				.sort({ viewCount: -1 })
-				.limit(limit || 5);
+      return allArticles;
+    } catch (error) {
+      return error;
+    }
+  }
 
-			if (!mostViewed)
-				throw new ApolloError(
-					'Internal Server Error Please try again later!',
-					'INTERNAL_SERVER_ERROR',
-				);
+  async getMostViewed(limit) {
+    try {
+      const mostViewed = await Article.find()
+        .sort({ viewCount: -1 })
+        .limit(limit || 5);
 
-			return mostViewed;
-		} catch (error) {
-			return error;
-		}
-	}
+      if (!mostViewed) throw new ApolloError('Internal Server Error Please try again later!', 'INTERNAL_SERVER_ERROR');
 
-	async getRecent(limit) {
-		try {
-			const recentArticles = await Article.find()
-				.sort({ createdAt: -1 })
-				.limit(limit || 5);
+      return mostViewed;
+    } catch (error) {
+      return error;
+    }
+  }
 
-			if (!recentArticles)
-				throw new ApolloError(
-					'Internal Server Error Please try again later!',
-					'INTERNAL_SERVER_ERROR',
-				);
+  async getRecent(limit) {
+    try {
+      const recentArticles = await Article.find()
+        .sort({ createdAt: -1 })
+        .limit(limit || 5);
 
-			return recentArticles;
-		} catch (error) {
-			return error;
-		}
-	}
+      if (!recentArticles)
+        throw new ApolloError('Internal Server Error Please try again later!', 'INTERNAL_SERVER_ERROR');
 
-	async update(id, input) {
-		const _id = mongoose.isValidObjectId(id) ? id : null;
+      return recentArticles;
+    } catch (error) {
+      return error;
+    }
+  }
 
-		try {
-			// update post
-			const updatedArticle = await Article.findOneAndUpdate(
-				{ $or: [{ _id }, { permalink: id }] },
-				{ ...input },
-			);
-			if (!updatedArticle) throw new ApolloError('Article is not exist!', 'BAD_USER_INPUT');
+  async update(id, input) {
+    const _id = mongoose.isValidObjectId(id) ? id : null;
 
-			// get updated post
-			const article = await Article.findById(updatedArticle._id);
+    try {
+      // update post
+      const updatedArticle = await Article.findOneAndUpdate({ $or: [{ _id }, { permalink: id }] }, { ...input });
+      if (!updatedArticle) throw new ApolloError('Article is not exist!', 'BAD_USER_INPUT');
 
-			return article;
-		} catch (error) {
-			return error;
-		}
-	}
+      // get updated post
+      const article = await Article.findById(updatedArticle._id);
 
-	async delete(input) {
-		const _id = mongoose.isValidObjectId(input) ? input : null;
+      return article;
+    } catch (error) {
+      return error;
+    }
+  }
 
-		try {
-			const deletedArticle = await Article.findOneAndDelete({
-				$or: [{ _id }, { permalink: input }],
-			});
-			if (!deletedArticle) throw new ApolloError('Article is not exist!', 'BAD_USER_INPUT');
+  async delete(input) {
+    const _id = mongoose.isValidObjectId(input) ? input : null;
 
-			return 'Article Deleted Successfully!';
-		} catch (error) {
-			return error;
-		}
-	}
+    try {
+      const deletedArticle = await Article.findOneAndDelete({
+        $or: [{ _id }, { permalink: input }],
+      });
+      if (!deletedArticle) throw new ApolloError('Article is not exist!', 'BAD_USER_INPUT');
+
+      return 'Article Deleted Successfully!';
+    } catch (error) {
+      return error;
+    }
+  }
 }

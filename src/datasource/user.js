@@ -1,109 +1,99 @@
 import { DataSource } from 'apollo-datasource';
-import { ApolloError } from 'apollo-server-errors';
+import { ApolloError, AuthenticationError } from 'apollo-server-errors';
 import { User } from '../models/user.model.js';
 import Dataloader from '../../node_modules/dataloader/index.js';
 import { isPasswordSecure, isEmailValid } from '../middleware/checkRequired.js';
 
 export class userDataSource extends DataSource {
-	initialize(config) {
-		this.context = config.context;
+  initialize(config) {
+    this.context = config.context;
 
-		this.userLoader = new Dataloader(async (ids) => {
-			const users = await User.find({ _id: { $in: ids } });
-			const userMap = users.reduce((acc, cur) => ({ ...acc, [cur.id]: cur }), {});
-			return ids.map((id) => userMap[id]);
-		});
-	}
-	async register(input) {
-		try {
-			// check if an old user exsists with this email
-			const isEmailExists = await User.findOne({ email: input.email });
-			if (isEmailExists)
-				throw new ApolloError(
-					`The user is aleady registered with this email: ${input.email}`,
-					'BAD_USER_INPUT',
-				);
+    this.userLoader = new Dataloader(async (ids) => {
+      const users = await User.find({ _id: { $in: ids } });
+      const userMap = users.reduce((acc, cur) => ({ ...acc, [cur.id]: cur }), {});
+      return ids.map((id) => userMap[id]);
+    });
+  }
 
-			// check if the password secure or not
-			const isSecure = isPasswordSecure(input.password);
-			if (!isSecure)
-				throw new ApolloError(
-					`The password must contain at least one number, one special(!@#$%^&*), lowercase, uppercase character and eight characters or longer`,
-					'GRAPHQL_VALIDATION_FAILED',
-				);
+  async register(input) {
+    try {
+      // check if an old user exsists with this email
+      const isEmailExists = await User.findOne({ email: input.email });
+      if (isEmailExists)
+        return new ApolloError(`The user is aleady registered with this email: ${input.email}`, 'BAD_USER_INPUT');
 
-			// check if the email valid or not
-			const isValid = isEmailValid(input.email);
-			if (!isValid)
-				throw new ApolloError(
-					`The email is invalid email: ${input.email}`,
-					'GRAPHQL_VALIDATION_FAILED',
-				);
+      // check if the password secure or not
+      const isSecure = isPasswordSecure(input.password);
+      if (!isSecure)
+        return new ApolloError(
+          `The password must contain at least one number, one special(!@#$%^&*), lowercase, uppercase character and eight characters or longer`,
+          'GRAPHQL_VALIDATION_FAILED'
+        );
 
-			// create new user
-			const createdUser = await new User(input);
+      // check if the email valid or not
+      const isValid = isEmailValid(input.email);
+      if (!isValid) return new ApolloError(`The email is invalid email: ${input.email}`, 'GRAPHQL_VALIDATION_FAILED');
 
-			// save new created user
-			const user = await createdUser.save();
+      // create new user
+      const createdUser = await new User(input);
 
-			// create token for a created user
-			const token = await createdUser.generateToken();
+      // save new created user
+      const user = await createdUser.save();
 
-			// attach tokent to user object
-			user.token = token;
+      // create token for a created user
+      const token = await createdUser.generateToken();
 
-			return user;
-		} catch (error) {
-			return error;
-		}
-	}
-	async login(input) {
-		try {
-			// check if there is a user with this inputted email
-			const user = await User.findOne({ email: input.email });
-			if (!user) throw new ApolloError('Wrong email or password', 'UNAUTHENTICATED');
+      // attach tokent to user object
+      user.token = token;
 
-			// check if the inputted password match the user password in the DB
-			const isMatch = await user.checkPassword(input.password);
-			if (!isMatch) throw new ApolloError('Wrong email or password', 'UNAUTHENTICATED');
+      return user;
+    } catch (error) {
+      return error;
+    }
+  }
 
-			// check if the user is blocked or not
-			const isBlocked = user.blocked;
-			if (isBlocked)
-				throw new ApolloError('sorry you are blocked from login', 'UNAUTHENTICATED');
+  async login(input) {
+    try {
+      // check if there is a user with this inputted email
+      const user = await User.findOne({ email: input.email });
+      if (!user) return new AuthenticationError('Wrong email or password');
 
-			// generate a new token for user
-			const token = await user.generateToken();
+      // check if the inputted password match the user password in the DB
+      const isMatch = await user.checkPassword(input.password);
+      if (!isMatch) return new AuthenticationError('Wrong email or password');
 
-			// attach the token to user object
-			user.token = token;
+      // check if the user is blocked or not
+      const isBlocked = user.blocked;
+      if (isBlocked) return new AuthenticationError('sorry you are blocked from login');
 
-			return user;
-		} catch (error) {
-			return error;
-		}
-	}
+      // generate a new token for user
+      const token = await user.generateToken();
 
-	async getById(id) {
-		return await this.userLoader.load(id);
-	}
-	async update(id, input) {
-		return await User.findOneAndUpdate({ _id: id }, { $set: { ...input } }, { new: true });
-	}
+      // attach the token to user object
+      user.token = token;
 
-	async getByRole(role) {
-		return await User.find({ role: role });
-	}
+      return user;
+    } catch (error) {
+      return error;
+    }
+  }
 
-	async updateRole(id, role) {
-		return await User.findOneAndUpdate({ _id: id }, { $set: { role: role } }, { new: true });
-	}
+  async getById(id) {
+    return await this.userLoader.load(id);
+  }
+  async update(id, input) {
+    return await User.findOneAndUpdate({ _id: id }, { $set: { ...input } }, { new: true });
+  }
 
-	async updateBlockStatus(id, isBlocked) {
-		return await User.findOneAndUpdate(
-			{ _id: id },
-			{ $set: { blocked: isBlocked } },
-			{ new: true },
-		);
-	}
+  async getByRole(role) {
+    return await User.find({ role: role });
+  }
+
+  async updateRole(id, role) {
+    return await User.findOneAndUpdate({ _id: id }, { $set: { role: role } }, { new: true });
+  }
+
+  async updateBlockStatus(id, isBlocked) {
+    return await User.findOneAndUpdate({ _id: id }, { $set: { blocked: isBlocked } }, { new: true });
+  }
 }

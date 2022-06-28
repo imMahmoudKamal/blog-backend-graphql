@@ -11,7 +11,7 @@ export const resolvers = {
 			dataSources.category.getCategoryByID(parent.categoryId),
 
 		// attach the User info to Article
-		userId: (parent, _, { dataSources }) => dataSources.user.getById(parent.userId),
+		user: (parent, _, { dataSources }) => dataSources.user.getById(parent.userId),
 	},
 
 	Query: {
