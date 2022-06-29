@@ -84,7 +84,7 @@ export class articleDataSource extends DataSource {
     }
   }
 
-  async getAllArticlesByCategory(categoryId, page, limit) {
+  async getAllArticlesByCategory(category, page, limit) {
     const options = {
       page: page || 1,
       limit: limit || 10,
@@ -95,6 +95,10 @@ export class articleDataSource extends DataSource {
     };
 
     try {
+      const categoryId = mongoose.isValidObjectId(category)
+        ? category
+        : (await Category.findOne({ permalink: category }))?.id;
+
       const allArticles = await Article.paginate({ categoryId }, options);
       if (!allArticles) throw new ApolloError('Internal Server Error Please try again later!', 'INTERNAL_SERVER_ERROR');
 
