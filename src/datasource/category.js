@@ -11,8 +11,8 @@ export class categoryDataSource extends DataSource {
     this.loaders = {
       category: new DataLoader(async (categoryIDs) => {
         const categories = await Category.find({ _id: { $in: categoryIDs } });
-
-        return Promise.all(categories);
+        const categoriesMap = categories.reduce((acc, cur) => ({ ...acc, [cur.id]: cur }), {});
+        return Promise.all(categoryIDs.map((id) => categoriesMap[id]));
       }),
     };
   }
