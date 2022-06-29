@@ -9,4 +9,7 @@ export const articleQuery = {
   mostViewedArticles: (_, { limit }, { dataSources }) => dataSources.article.getMostViewed(limit),
 
   recentArticles: (_, { limit }, { dataSources }) => dataSources.article.getRecent(limit),
+
+  articlesSearchPagination: (_, { keyword, page, limit }, { dataSources }) =>
+    dataSources.article.getSearch(keyword, page, limit),
 };

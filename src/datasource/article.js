@@ -137,6 +137,37 @@ export class articleDataSource extends DataSource {
     }
   }
 
+  async getSearch(keyword, page, limit) {
+    const options = {
+      page: page || 1,
+      limit: limit || 10,
+      sort: {
+        createdAt: -1,
+      },
+      customLabels,
+    };
+
+    try {
+      const matchedArticles = await Article.paginate(
+        {
+          $or: [
+            { title: { $regex: keyword, $options: 'igm' } },
+            { description: { $regex: keyword, $options: 'igm' } },
+            { content: { $regex: keyword, $options: 'igm' } },
+          ],
+        },
+        options
+      );
+
+      if (!matchedArticles)
+        throw new ApolloError('Internal Server Error Please try again later!', 'INTERNAL_SERVER_ERROR');
+
+      return matchedArticles;
+    } catch (error) {
+      return error;
+    }
+  }
+
   async update(id, input) {
     const _id = mongoose.isValidObjectId(id) ? id : null;
 

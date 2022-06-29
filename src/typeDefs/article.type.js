@@ -71,6 +71,9 @@ export const articleTypeDefs = gql`
 
     "Get an array of articles by category"
     articlesByCategoryPagination(categoryID: ID!, page: Int, limit: Int): ArticlesByCategoryPagination!
+
+    "Get an array of articles by search keyword"
+    articlesSearchPagination(keyword: String!, page: Int, limit: Int): ArticlesPagination!
   }
 
   extend type Mutation {
