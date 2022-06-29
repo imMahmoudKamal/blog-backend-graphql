@@ -32,6 +32,10 @@ const schema = new mongoose.Schema({
     type: String,
   },
 
+  bio: {
+    type: String,
+  },
+
   role: {
     type: String,
     default: 'author',

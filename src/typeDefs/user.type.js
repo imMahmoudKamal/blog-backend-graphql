@@ -11,6 +11,7 @@ export const userTypeDefs = gql`
     firstName: String!
     lastName: String!
     email: String!
+    bio: String
     profilePicture: String
     role: ROLE!
     blocked: Boolean!
@@ -22,6 +23,7 @@ export const userTypeDefs = gql`
     lastName: String!
     email: String!
     password: String!
+    bio: String
     profilePicture: String
   }
 
@@ -30,6 +32,7 @@ export const userTypeDefs = gql`
     lastName: String
     email: String
     password: String
+    bio: String
     profilePicture: String
   }
 
