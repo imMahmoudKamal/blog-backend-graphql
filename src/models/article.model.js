@@ -29,10 +29,12 @@ const articleSchema = new mongoose.Schema(
 				return this.title;
 			},
 		},
+		description: {
+			type: String,
+		},
 		content: {
 			type: String,
 		},
-
 		categoryId: {
 			type: String,
 			required: [true, 'categoryId field is required'],

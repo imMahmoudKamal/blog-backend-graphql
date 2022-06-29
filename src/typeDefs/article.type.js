@@ -7,6 +7,7 @@ export const articleTypeDefs = gql`
 		permalink: String!
 		imageURL: String!
 		imageDescription: String!
+    description: String
 		content: String
 		createdAt: String!
 		category: Category!
@@ -40,15 +41,17 @@ export const articleTypeDefs = gql`
 		permalink: String!
 		imageURL: String!
 		imageDescription: String
+		description: String
 		content: String
 		categoryId: ID!
 	}
 
 	input UpdateArticleInput {
-		title: String!
-		permalink: String!
-		imageURL: String!
+		title: String
+		permalink: String
+		imageURL: String
 		imageDescription: String
+		description: String
 		content: String
 		categoryId: ID
 	}
